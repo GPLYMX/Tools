@@ -1,0 +1,55 @@
+ENVI
+file type = ENVI Standard
+sensor type = MONARCH
+wavelength units = nm
+data type = 12
+interleave = BSQ
+byte order = 0
+bit depth = 10
+header offset = 0
+temperature = 33.765625
+wavelength = {
+713,
+736,
+759,
+782,
+805,
+828,
+851,
+874,
+897,
+920
+}
+gain = {
+1.0,
+1.0,
+1.0,
+1.0,
+1.0,
+1.0,
+1.0,
+1.0,
+1.0,
+1.0
+}
+exposure time = {
+250,
+250,
+250,
+250,
+250,
+250,
+250,
+250,
+250,
+250
+}
+exposure type = {
+radiometric-calibration
+}
+default bands = {
+713
+}
+lines = 1024
+samples = 1280
+bands = 10
