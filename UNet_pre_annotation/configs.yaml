@@ -1,0 +1,9 @@
+# 定义类别数(包括背景)
+num_classes: 3
+in_channels: 13
+unet_base: 32
+# 像素标注的单元格大小，过大的话预标注精确度会下降，过小的话不利于修正，[50, 50]比较适中
+base_size: [50, 50]
+class_mapping: {0: "background",
+                1: "tea",
+                2: "impurity",}
