@@ -9,6 +9,10 @@
 import os
 import shutil
 
+import cv2
+from PIL import Image
+import numpy as np
+
 from main import main
 
 
@@ -20,7 +24,7 @@ def copyfile(srcfile, dstpath, new_filename):
         if not os.path.exists(dstpath):
             os.makedirs(dstpath)                       # 创建路径
         shutil.copy(srcfile, os.path.join(dstpath, new_filename))          # 复制文件
-        print ("copy %s -> %s"%(srcfile, dstpath + new_filename))
+        print ("copy %s -> %s"%(srcfile, dstpath + '\\' + new_filename))
 
 
 def mkdir(path):
@@ -36,33 +40,70 @@ def mkdir(path):
     return img_root, label_root
 
 
+def combine_img(folder_path):
+    # 获取文件夹中的所有图像文件名
+    image_files = [filename for filename in os.listdir(folder_path) if filename.endswith(".png")]
+    # 加载灰度图像并添加到列表中
+    image_files.sort()
+    image_list = []
+    for img_path in image_files[:3]:
+        img = Image.open(os.path.join(folder_path, img_path)).convert("L")  # 将图像转换为灰度模式
+        image_list.append(img)
+
+    # 确定图像的尺寸（假设所有图像都有相同的尺寸）
+    width, height = image_list[0].size
+
+    # 创建一个空的PyTorch张量，用于存储多通道图像
+    multi_channel_image = np.zeros((len(image_list), height, width), dtype=np.float32)
+
+    # 将灰度图像的像素数据叠加到PyTorch张量中
+    for i, img in enumerate(image_list):
+        # 将PIL图像转换为PyTorch张量
+        # img_tensor = transforms.ToTensor()(img)
+        # 仅使用灰度通道数据
+        multi_channel_image[i] = img
+
+    multi_channel_image = np.transpose(multi_channel_image, (1, 2, 0))
+    return multi_channel_image
+
+
 def adjust():
     pass
 
 
 if __name__ == '__main__':
-    save_root = r'D:\mycodes\RITH\puer\data_20231020\train'
-    data_root = r'D:\mycodes\RITH\puer\data_20231020\train'
+    save_root = r'D:\mycodes\RITH\puer\datas\data20240229\new_label\data'
+    data_root = r'D:\mycodes\RITH\puer\datas\data20240229\new_label\data'
 
     img_root, label_root = mkdir(save_root)
     # 对文件夹中的每一组数据进行标注
     for filename in os.listdir(data_root):
-        try:
-            int(filename[0])
-            if filename[2] != 'w':
-                file_root = os.path.join(data_root, filename)
-                # 生成数据
-                main(file_root)
+        print(filename)
 
-                # 复制并重命名图片
-                origin_img_root = os.path.join(file_root, 'rgb.jpg')
-                copyfile(origin_img_root, img_root, filename+'.jpg')
-                # 复制并重命名标签
-                origin_img_root = os.path.join(file_root, 'rgb.txt')
-                copyfile(origin_img_root, label_root, filename+'.txt')
-                # 复制classes.txt
-                origin_img_root = os.path.join(file_root, 'classes.txt')
-                copyfile(origin_img_root, label_root, 'classes.txt')
+        # int(filename[0])
+        if filename[2] != 'w': # 当不是白板时
+            file_root = os.path.join(data_root, filename)
+            print(file_root)
+            # 生成数据
+            # main(file_root, yolo_flag='no', chaguo_category=2, label3=2)
 
-        except ValueError:
-            pass
+            # 根据pre_combine的前三个通道生成彩图
+            rgb = combine_img(os.path.join(file_root, 'pre_process'))
+            print(rgb.shape)
+            cv2.imwrite(os.path.join(img_root, filename+'.png'), rgb)
+
+            # # 复制并重命名图片
+            # origin_img_root = os.path.join(file_root, 'rgb.png')
+            # copyfile(origin_img_root, img_root, filename+'.png')
+
+            # 复制并重命名标签
+            origin_img_root = os.path.join(file_root, 'rgb.txt')
+            print(label_root)
+            copyfile(origin_img_root, label_root, filename+'.txt')
+            # 复制classes.txt
+            origin_img_root = os.path.join(file_root, 'classes.txt')
+            copyfile(origin_img_root, label_root, 'classes.txt')
+
+        # except Exception as e:
+        #     print(e)
+        #     pass
